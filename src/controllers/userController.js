@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const User = require('../models/User'); // On importe le nouveau modèle Mongoose
+const { User } = require('../models/Schemas'); // On importe le nouveau modèle Mongoose
 
 const SALT_ROUNDS = 10;
 

@@ -1,13 +1,19 @@
-const db = require('../config/db');
+// src/controllers/produitController.js
+const Produit = require('../models/Produit');
 
 // 1. Récupérer tous les produits
 exports.getAllProduits = async (req, res) => {
     try {
-        // On sélectionne 'prix' car c'est le nom dans ta DB
-        const produits = await db.allAsync('SELECT id, nom, prix, stock FROM produits ORDER BY nom ASC');
-        res.json(produits);
+        const produits = await Produit.find().sort({ nom: 1 });
+        // On renvoie un tableau d'objets formatés pour le frontend
+        res.json(produits.map(p => ({
+            id: p._id,
+            nom: p.nom,
+            prix: p.prix,
+            stock: p.stock
+        })));
     } catch (error) {
-        console.error("Erreur récupération produits:", error);
+        console.error("Erreur récupération produits MongoDB:", error);
         res.status(500).json({ message: "Erreur récupération." });
     }
 };
@@ -15,17 +21,17 @@ exports.getAllProduits = async (req, res) => {
 // 2. Créer un produit
 exports.createProduit = async (req, res) => {
     const { nom, prix, stock } = req.body;
-    
     try {
-        // ON UTILISE 'prix' ICI POUR CORRESPONDRE À TA TABLE
-        const result = await db.runAsync(
-            `INSERT INTO produits (nom, prix, stock) VALUES (?, ?, ?)`,
-            [nom, parseFloat(prix), parseInt(stock)]
-        );
-        res.status(201).json({ id: result.lastID, nom, prix, stock });
+        const nouveauProduit = new Produit({
+            nom,
+            prix: parseFloat(prix),
+            stock: parseInt(stock) || 0
+        });
+        const sauvegarde = await nouveauProduit.save();
+        res.status(201).json({ id: sauvegarde._id, nom, prix, stock });
     } catch (error) {
-        console.error("Erreur INSERT produit:", error); // Garde ce log pour voir les erreurs
-        res.status(500).json({ message: "Erreur lors de l'ajout en base de données." });
+        console.error("Erreur création produit MongoDB:", error);
+        res.status(500).json({ message: "Erreur lors de l'ajout." });
     }
 };
 
@@ -34,12 +40,10 @@ exports.updateProduit = async (req, res) => {
     const { id } = req.params;
     const { nom, prix, stock } = req.body;
     try {
-        await db.runAsync(
-            `UPDATE produits SET nom=?, prix=?, stock=? WHERE id=?`,
-            [nom, prix, stock, id]
-        );
+        await Produit.findByIdAndUpdate(id, { nom, prix, stock });
         res.json({ message: "Produit mis à jour" });
     } catch (error) {
+        console.error("Erreur MAJ produit:", error);
         res.status(500).json({ message: "Erreur mise à jour" });
     }
 };
@@ -48,9 +52,10 @@ exports.updateProduit = async (req, res) => {
 exports.deleteProduit = async (req, res) => {
     const { id } = req.params;
     try {
-        await db.runAsync('DELETE FROM produits WHERE id = ?', [id]);
+        await Produit.findByIdAndDelete(id);
         res.json({ message: "Supprimé" });
     } catch (error) {
+        console.error("Erreur suppression produit:", error);
         res.status(500).json({ message: "Erreur suppression" });
     }
 };

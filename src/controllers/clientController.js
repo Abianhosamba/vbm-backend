@@ -1,50 +1,51 @@
 // verielle-business-manager/src/controllers/clientController.js
-
-const { runAsync, allAsync } = require('../config/db'); // Utilisation du fichier db standard
+const Client = require('../models/Client'); // Import du nouveau modèle
 
 /**
- * Créer un nouveau client
+ * Créer un nouveau client dans MongoDB
  */
 exports.createClient = async (req, res) => {
     console.log("CORPS REÇU :", req.body);
     const { nom, telephone, adresse } = req.body;
 
-    // Validation minimale pour correspondre au ClientScreen
     if (!nom) {
         return res.status(400).json({ message: "Le nom du client est obligatoire." });
     }
 
     try {
-        const result = await runAsync(
-            `INSERT INTO clients (nom, telephone, adresse) 
-             VALUES (?, ?, ?)`,
-            [nom, telephone || null, adresse || null]
-        );
+        // On crée l'objet selon le schéma MongoDB
+        const nouveauClient = new Client({
+            nom,
+            telephone,
+            adresse
+        });
+
+        // Sauvegarde réelle dans MongoDB Atlas
+        const clientSauvegarde = await nouveauClient.save();
 
         res.status(201).json({
             message: "Client créé avec succès.",
-            id: result.lastID, // 'id' au lieu de 'clientId' pour faciliter le mapping frontend
-            nom: nom,
-            telephone: telephone,
-            adresse: adresse
+            id: clientSauvegarde._id, // MongoDB utilise _id
+            nom: clientSauvegarde.nom,
+            telephone: clientSauvegarde.telephone,
+            adresse: clientSauvegarde.adresse
         });
 
     } catch (error) {
-        console.error("Erreur création client:", error);
-        res.status(500).json({ message: "Erreur serveur interne lors de la création du client." });
+        console.error("Erreur création client MongoDB:", error);
+        res.status(500).json({ message: "Erreur lors de l'enregistrement dans MongoDB." });
     }
 };
 
 /**
- * Récupérer tous les clients
+ * Récupérer tous les clients de MongoDB
  */
 exports.getAllClients = async (req, res) => {
     try {
-        // Tri alphabétique pour une liste plus propre
-        const clients = await allAsync('SELECT * FROM clients ORDER BY nom ASC');
+        const clients = await Client.find().sort({ nom: 1 });
         res.status(200).json(clients);
     } catch (error) {
-        console.error("Erreur récupération clients:", error);
-        res.status(500).json({ message: "Erreur serveur interne lors de la récupération des clients." });
+        console.error("Erreur récupération clients MongoDB:", error);
+        res.status(500).json({ message: "Erreur lors de la récupération des clients." });
     }
 };

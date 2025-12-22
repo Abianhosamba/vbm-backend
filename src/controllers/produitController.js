@@ -1,27 +1,18 @@
 const { Produit } = require('../models/Schemas');
 
-exports.getAllProduits = async (req, res) => {
-    try { res.json(await Produit.find()); } catch (e) { res.status(500).send(e.message); }
-};
-
 exports.createProduit = async (req, res) => {
+    console.log("📦 Données Produit reçues :", req.body);
     try {
-        const p = new Produit(req.body);
+        const p = new Produit({
+            nom: req.body.nom || req.body.name,
+            prix: req.body.prix || req.body.price || 0,
+            stock: req.body.stock || 0
+        });
         await p.save();
         res.status(201).json(p);
-    } catch (e) { res.status(500).send(e.message); }
+    } catch (e) { res.status(500).json({ error: e.message }); }
 };
 
-exports.updateProduit = async (req, res) => {
-    try {
-        const p = await Produit.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        res.json(p);
-    } catch (e) { res.status(500).send(e.message); }
-};
-
-exports.deleteProduit = async (req, res) => {
-    try {
-        await Produit.findByIdAndDelete(req.params.id);
-        res.json({ message: "Supprimé" });
-    } catch (e) { res.status(500).send(e.message); }
+exports.getAllProduits = async (req, res) => {
+    try { res.json(await Produit.find()); } catch (e) { res.status(500).json({ error: e.message }); }
 };

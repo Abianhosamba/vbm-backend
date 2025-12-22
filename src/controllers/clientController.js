@@ -32,6 +32,7 @@ exports.createClient = async (req, res) => {
         });
 
     } catch (error) {
+        console.error("ERREUR CRITIQUE MONGODB :", error.message);
         console.error("Erreur création client MongoDB:", error);
         res.status(500).json({ message: "Erreur lors de l'enregistrement dans MongoDB." });
     }

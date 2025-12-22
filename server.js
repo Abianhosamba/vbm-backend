@@ -3,7 +3,9 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
 const db = require('./src/config/db');
-const User = require('./src/models/User'); // Import du nouveau modèle
+
+// --- CORRECTION ICI : On importe User depuis Schemas ---
+const { User } = require('./src/models/Schemas'); 
 
 // Import des routes
 const userRoutes = require('./src/routes/userRoutes');
@@ -20,15 +22,12 @@ app.use(express.json());
 // Log des requêtes pour le débogage
 app.use((req, res, next) => {
     console.log(`📡 Requête reçue : ${req.method} ${req.url}`);
-    console.log(`📦 Corps :`, req.body);
     next();
 });
 
 // --- INITIALISATION DU SERVEUR ET DE LA BASE ---
 db.initDB()
     .then(async () => {
-        // console.log('✅ Connexion DB réussie'); // Déjà géré dans db.js
-
         try {
             const saltRounds = 10;
 
@@ -44,7 +43,7 @@ db.initDB()
                     motDePasse: hacheAbiel,
                     role: 'admin'
                 });
-                console.log("👤 Compte Admin (Abiel) créé dans MongoDB.");
+                console.log("👤 Compte Admin (Abiel) créé.");
             }
 
             // --- GESTION DU COMPTE VÉRONIQUE (MANAGER) ---
@@ -59,7 +58,7 @@ db.initDB()
                     motDePasse: hacheVero,
                     role: 'manager'
                 });
-                console.log("👤 Compte Manager (Véronique) créé dans MongoDB.");
+                console.log("👤 Compte Manager (Véronique) créé.");
             }
 
         } catch (e) {
@@ -72,19 +71,8 @@ db.initDB()
         app.use('/api/clients', clientRoutes);
         app.use('/api/commandes', commandeRoutes);
 
-        const os = require('os');
         app.listen(PORT, '0.0.0.0', () => {
-            const interfaces = os.networkInterfaces();
-            let currentIP = 'localhost';
-            
-            for (let devName in interfaces) {
-                interfaces[devName].forEach((details) => {
-                    if (details.family === 'IPv4' && !details.internal) {
-                        currentIP = details.address;
-                    }
-                });
-            }
-            console.log(`🚀 Serveur actif sur http://${currentIP}:${PORT}/api`);
+            console.log(`🚀 Serveur actif sur le port : ${PORT}`);
         });
     })
     .catch(err => {

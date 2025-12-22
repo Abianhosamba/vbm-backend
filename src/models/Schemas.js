@@ -42,9 +42,10 @@ const commandeSchema = new mongoose.Schema({
     }]
 });
 
+// Remplace tes exports actuels à la fin de src/models/Schemas.js par ceci :
 module.exports = {
-    User: mongoose.model('User', userSchema),
-    Client: mongoose.model('Client', clientSchema),
-    Produit: mongoose.model('Produit', produitSchema),
-    Commande: mongoose.model('Commande', commandeSchema)
+    User: mongoose.models.User || mongoose.model('User', userSchema),
+    Client: mongoose.models.Client || mongoose.model('Client', clientSchema),
+    Produit: mongoose.models.Produit || mongoose.model('Produit', produitSchema),
+    Commande: mongoose.models.Commande || mongoose.model('Commande', commandeSchema)
 };

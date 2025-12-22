@@ -1,5 +1,5 @@
 // src/controllers/produitController.js
-const Produit = require('../models/Produit');
+const { Produit } = require('../models/Schemas');
 
 // 1. Récupérer tous les produits
 exports.getAllProduits = async (req, res) => {

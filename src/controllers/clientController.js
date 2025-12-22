@@ -1,5 +1,5 @@
 // verielle-business-manager/src/controllers/clientController.js
-const Client = require('../models/Client'); // Import du nouveau modèle
+const { Produit } = require('../models/Schemas'); // Import du nouveau modèle
 
 /**
  * Créer un nouveau client dans MongoDB

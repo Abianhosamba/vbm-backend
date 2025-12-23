@@ -1,16 +1,31 @@
 const { Commande } = require('../models/Schemas');
 
+// CETTE FONCTION MANQUAIT POUR TES ROUTES
+exports.getAllCommandes = async (req, res) => {
+    try {
+        // On récupère tout et on remplit les infos du client
+        const commandes = await Commande.find()
+            .populate('client_id', 'nom telephone')
+            .sort({ createdAt: -1 }); // Les plus récentes en premier
+
+        res.status(200).json(commandes);
+    } catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+};
+
 exports.getStats = async (req, res) => {
     try {
-        const { periode } = req.query;
-        console.log("📊 Dashboard demande stats pour :", periode);
+        const commandes = await Commande.find();
         
-        const commandes = await Commande.find().populate('client_id');
-        
-        // Sécurité : si aucune commande, on renvoie une structure vide propre
-        if (!commandes) return res.status(200).json([]);
-        
-        res.status(200).json(commandes);
+        // Calcul rapide pour le dashboard si besoin d'un condensé
+        const stats = {
+            totalCA: commandes.reduce((acc, c) => acc + (c.montant_total || 0), 0),
+            totalPaye: commandes.reduce((acc, c) => acc + (c.montant_paye || 0), 0),
+            nbCommandes: commandes.length
+        };
+
+        res.status(200).json(stats);
     } catch (e) { 
         res.status(500).json({ error: e.message }); 
     }
@@ -18,12 +33,13 @@ exports.getStats = async (req, res) => {
 
 exports.createCommande = async (req, res) => {
     try {
-        const { client_id, montantAvance, lignes } = req.body;
+        const { client_id, montant_total, montant_paye, lignes } = req.body;
         const nouvelleCommande = new Commande({
             client_id,
-            montantAvance: parseFloat(montantAvance) || 0,
+            montant_total: parseFloat(montant_total) || 0,
+            montant_paye: parseFloat(montant_paye) || 0,
             lignes,
-            statut: 'Ouverte'
+            statut: (montant_paye >= montant_total) ? 'Payée' : 'Ouverte'
         });
         await nouvelleCommande.save();
         res.status(201).json(nouvelleCommande);
@@ -31,6 +47,8 @@ exports.createCommande = async (req, res) => {
         res.status(500).json({ error: e.message }); 
     }
 };
+
+// ... Garde tes autres fonctions (solderCommande, updateAvance, etc.) telles quelles
 
 exports.solderCommande = async (req, res) => {
     try {

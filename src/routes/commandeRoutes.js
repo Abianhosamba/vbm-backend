@@ -6,7 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware'); // Import direct
 // Routes corrigées
 router.post('/', authMiddleware, commandeController.createCommande);
 router.get('/stats', authMiddleware, commandeController.getStats);
-//router.get('/', authMiddleware, commandeController.getAllCommandes);
+router.get('/', authMiddleware, commandeController.getAllCommandes);
 
 // Encaisser la totalité du reste
 router.put('/:id/solder', authMiddleware, commandeController.solderCommande);

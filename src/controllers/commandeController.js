@@ -3,10 +3,10 @@ const { Commande } = require('../models/Schemas');
 // CETTE FONCTION MANQUAIT POUR TES ROUTES
 exports.getAllCommandes = async (req, res) => {
     try {
-        // On récupère tout et on remplit les infos du client
         const commandes = await Commande.find()
-            .populate('client_id', 'nom telephone')
-            .sort({ createdAt: -1 }); // Les plus récentes en premier
+            .populate('client_id', 'nom')      // Récupère le nom du client
+            .populate('utilisateur_id', 'nom') // Récupère le nom du vendeur
+            .sort({ createdAt: -1 });
 
         res.status(200).json(commandes);
     } catch (e) {
